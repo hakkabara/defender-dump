@@ -3,6 +3,7 @@
 '''
 Dumps quarantined files from Windows Defender
 By Nikola Knežević - 2021
+Edited by Hakkabara - 2022
 
 Inspired by https://github.com/ernw/quarantine-formats
 '''
@@ -16,6 +17,12 @@ import tarfile
 
 from collections import namedtuple
 file_record = namedtuple("file_record", "path hash detection filetime")
+
+def dir_path(string):
+    if os.path.isdir(string):
+        return string
+    else:
+        raise NotADirectoryError(string)
 
 def mse_ksa():
     # hardcoded key obtained from mpengine.dll
@@ -84,7 +91,7 @@ def unpack_malware(f):
 
 def dump_entries(basedir, entries):
 
-    tar = tarfile.open('quarantine.tar', 'w')
+    tar = tarfile.open( args.description + '/' + 'quarantine.tar', 'w')
 
     for file_rec in entries:
         quarfile = basedir / 'ResourceData' / file_rec.hash[:2] / file_rec.hash
@@ -178,5 +185,13 @@ if __name__ == '__main__':
             '-d', '--dump', action='store_true',
             help='dump all entries into tar archive (quarantine.tar)'
     )
+        parser.add_argument(
+            '-dst', '--destination', type=dir_path',
+            help='destination of results (quarantine.tar)'
+    )
 
     main(parser.parse_args())
+
+
+    dump.py -dst /home/user/flausch
+    dump.py -dst /home/user/flausch/
