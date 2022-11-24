@@ -7,7 +7,7 @@ Edited by Hakkabara - 2022
 
 Inspired by https://github.com/ernw/quarantine-formats
 '''
-
+import os
 import io
 import struct
 import argparse
@@ -89,9 +89,9 @@ def unpack_malware(f):
 
     return (malfile, malfile_len)
 
-def dump_entries(basedir, entries):
+def dump_entries(destdir,basedir, entries):
 
-    tar = tarfile.open( args.description + '/' + 'quarantine.tar', 'w')
+    tar = tarfile.open( destdir + '/' + 'quarantine.tar', 'w')
 
     for file_rec in entries:
         quarfile = basedir / 'ResourceData' / file_rec.hash[:2] / file_rec.hash
@@ -166,7 +166,12 @@ def main(args):
 
     if args.dump:
         # export quarantine files
-        dump_entries(basedir, entries)
+        dump_entries(args.destination,basedir, entries)
+        # save  quarantine log
+        detection_max_len = max([len(x[2]) for x in entries])
+        for entry in entries:
+            print(entry.filetime, f"{entry.detection:<{detection_max_len}}", entry.path)
+
     else:
         # display quarantine files
         detection_max_len = max([len(x[2]) for x in entries])
@@ -185,13 +190,9 @@ if __name__ == '__main__':
             '-d', '--dump', action='store_true',
             help='dump all entries into tar archive (quarantine.tar)'
     )
-        parser.add_argument(
-            '-dst', '--destination', type=dir_path',
+    parser.add_argument(
+            '-dst', '--destination', type=dir_path,
             help='destination of results (quarantine.tar)'
     )
 
     main(parser.parse_args())
-
-
-    dump.py -dst /home/user/flausch
-    dump.py -dst /home/user/flausch/
